@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import warnings
 
 from azure.core.exceptions import ClientAuthenticationError, HttpResponseError, ResourceExistsError, ResourceNotFoundError, map_error
-from azure.core.paging import ItemPaged
+from azure.core.paging import ItemPaged, PageIterator
 from azure.core.pipeline import PipelineResponse
 from azure.core.pipeline.transport import HttpRequest, HttpResponse
 from azure.core.polling import LROPoller, NoPolling, PollingMethod
@@ -105,8 +105,10 @@ class PagingOperations(object):
 
             return pipeline_response
 
+        page_iterator = kwargs.pop("page_iterator", PageIterator)
+
         return ItemPaged(
-            get_next, extract_data
+            page_iterator=page_iterator(get_next, extract_data, **kwargs)
         )
     get_no_item_name_pages.metadata = {'url': '/paging/noitemname'}  # type: ignore
 
@@ -258,7 +260,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-        
+
         _maxresults = None
         _timeout = None
         if paging_get_multiple_pages_options is not None:
@@ -411,7 +413,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-        
+
         _maxresults = None
         _timeout = None
         if paging_get_odata_multiple_pages_options is not None:
@@ -491,7 +493,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-        
+
         _maxresults = None
         _offset = None
         _timeout = None
@@ -967,7 +969,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-        
+
         _api_version = None
         _tenant = None
         if custom_parameter_group is not None:
@@ -1042,7 +1044,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-        
+
         _maxresults = None
         _timeout = None
         if paging_get_multiple_pages_lro_options is not None:
@@ -1111,7 +1113,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-        
+
         _maxresults = None
         _timeout = None
         if paging_get_multiple_pages_lro_options is not None:
