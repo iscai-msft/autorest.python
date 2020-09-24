@@ -268,7 +268,7 @@ class PagingOperations(object):
             _timeout = paging_get_multiple_pages_options.timeout
         accept = "application/json"
 
-        def prepare_request(next_link=None):
+        def prepare_initial_request():
             # Construct headers
             header_parameters = {}  # type: Dict[str, Any]
             if client_request_id is not None:
@@ -279,17 +279,12 @@ class PagingOperations(object):
                 header_parameters['timeout'] = self._serialize.header("timeout", _timeout, 'int')
             header_parameters['Accept'] = self._serialize.header("accept", accept, 'str')
 
-            if not next_link:
-                # Construct URL
-                url = self.get_multiple_pages.metadata['url']  # type: ignore
-                # Construct parameters
-                query_parameters = {}  # type: Dict[str, Any]
+            # Construct URL
+            url = self.get_multiple_pages.metadata['url']  # type: ignore
+            # Construct parameters
+            query_parameters = {}  # type: Dict[str, Any]
 
-                request = self._client.get(url, query_parameters, header_parameters)
-            else:
-                url = next_link
-                query_parameters = {}  # type: Dict[str, Any]
-                request = self._client.get(url, query_parameters, header_parameters)
+            request = self._client.get(url, query_parameters, header_parameters)
             return request
 
         def extract_data(pipeline_response):
@@ -298,6 +293,11 @@ class PagingOperations(object):
             if cls:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
+
+        page_iterator_class = kwargs.pop("page_iterator_class", PageIterator)
+        page_iterator = page_iterator_class()
+
+
 
         def get_next(next_link=None):
             request = prepare_request(next_link)
