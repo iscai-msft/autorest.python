@@ -576,23 +576,17 @@ class PagingOperations(object):
         error_map.update(kwargs.pop('error_map', {}))
         accept = "application/json"
 
-        def prepare_request(next_link=None):
+        def _prepare_initial_request():
             # Construct headers
             header_parameters = {}  # type: Dict[str, Any]
             header_parameters['Accept'] = self._serialize.header("accept", accept, 'str')
 
-            if not next_link:
-                # Construct URL
-                url = self.get_multiple_pages_retry_first.metadata['url']  # type: ignore
-                # Construct parameters
-                query_parameters = {}  # type: Dict[str, Any]
+            # Construct URL
+            url = self.get_multiple_pages_retry_first.metadata['url']  # type: ignore
+            # Construct parameters
+            query_parameters = {}  # type: Dict[str, Any]
 
-                request = self._client.get(url, query_parameters, header_parameters)
-            else:
-                url = next_link
-                query_parameters = {}  # type: Dict[str, Any]
-                request = self._client.get(url, query_parameters, header_parameters)
-            return request
+            return self._client.get(url, query_parameters, header_parameters)
 
         def extract_data(pipeline_response):
             deserialized = self._deserialize('ProductResult', pipeline_response)
@@ -612,6 +606,13 @@ class PagingOperations(object):
                 raise HttpResponseError(response=response, error_format=ARMErrorFormat)
 
             return pipeline_response
+
+        paging_method_class = kwargs.pop('paging_method', PageIterator)
+        initial_request = _prepare_initial_request()
+        paging_method = paging_method_class()
+
+        return ItemPaged(self._client, paging_method, initial_request, extract_data)
+
 
         return ItemPaged(
             get_next, extract_data
@@ -1266,4 +1267,50 @@ class PagingOperations(object):
         return ItemPaged(
             get_next, extract_data
         )
+    get_paging_model_with_item_name_with_xms_client_name.metadata = {'url': '/paging/itemNameWithXMSClientName'}  # type: ignore
+
+
+    @distributed_trace
+    def get_paging_with_continuation_token(
+        self,
+        header_for_continuation_token=None
+        **kwargs  # type: Any
+    ):
+        # type: (...) -> Iterable["models.ProductResultWithContinuationToken"]
+        """A paging operation for paging with continuation_token
+
+        :keyword callable cls: A custom type or function that will be passed the direct response
+        :return: An iterator like instance of either ProductResultWithContinuationToken or the result of cls(response)
+        :rtype: ~azure.core.paging.ItemPaged[~paging.models.ProductResultWithContinuationToken]
+        :raises: ~azure.core.exceptions.HttpResponseError
+        """
+        cls = kwargs.pop('cls', None)  # type: ClsType["models.ProductResultWithContinuationToken"]
+        error_map = {
+            401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
+        }
+        error_map.update(kwargs.pop('error_map', {}))
+        accept = "application/json"
+
+        def _prepare_initial_request():
+            # Construct URL
+            url = self.get_paging_with_continuation_token.metadata['url']  # type: ignore
+            # Construct parameters
+            query_parameters = {}  # type: Dict[str, Any]
+
+            return self._client.get(url, query_parameters, header_parameters)
+
+        def extract_data(pipeline_response):
+            deserialized = self._deserialize('ProductResultWithContinuationToken', pipeline_response)
+            list_of_elem = deserialized.indexes
+            if cls:
+                list_of_elem = cls(list_of_elem)
+            return deserialized.continuation_token or None, iter(list_of_elem)
+        # TODO: HAVE USERS PASS IN INSTANCE
+        paging_method_class = kwargs.pop("paging_method_class", PageIteratorWithContinuationToken)
+        paging_method = paging_method_class(paging_options={'continuation-token-input-parameter': 'header_for_continuation_token'})
+
+        return ItemPaged(
+            paging_method=paging_method, initial_request=_prepare_initial_request(), extract_data=extract_data
+        )
+
     get_paging_model_with_item_name_with_xms_client_name.metadata = {'url': '/paging/itemNameWithXMSClientName'}  # type: ignore
