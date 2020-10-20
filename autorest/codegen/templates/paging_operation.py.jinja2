@@ -51,7 +51,14 @@
 {% endif %}
     {{ helper.paging_operation(code_model, operation, async_mode) }}
 
+    paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
     return {{ item_paged }}(
-        get_next, extract_data
+        client=self._client,
+        paging_method=paging_method,
+        initial_request=_prepare_initial_request(),
+        extract_data=extract_data,
+        {% if operation.next_operation %}
+        prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+        {% endif %}
     )
 {{ operation.python_name }}.metadata = {'url': '{{ operation.url|replace("'", "\\'") }}'}  # type: ignore
