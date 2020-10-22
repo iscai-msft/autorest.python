@@ -1,5 +1,46 @@
 # Change Log
 
+### 2020-10-19 - 5.4.0
+Autorest core version: 3.0.6318
+
+Modelerfour version: 4.15.421
+
+**New Features**
+
+- Add support for `--python.debugger`. With this flag, you can start debugging using VS Code. Make sure to still set up your [debugging configuration](https://github.com/Azure/autorest.python/wiki/Autorest-v3-based-generator-cheatsheet#vscode-debug)  #790
+
+**Bug Fixes**
+
+- Correctly handling inheritance of class properties for inheritance chains > 3 levels  #795
+
+### 2020-10-06 - 5.3.5
+Autorest core version: 3.0.6318
+
+Modelerfour version: 4.15.421
+
+**Bug Fixes**
+
+- Can now correctly poll in the case of parameterized endpoints with relative polling urls  #784
+
+### 2020-09-24 - 5.3.4
+Autorest core version: 3.0.6318
+
+Modelerfour version: 4.15.421
+
+**Bug Fixes**
+
+- Include `content_type` docstrings for LRO and paging operations in the case of multiple media types  #778
+- Return response body if its content type is `text/plain` (taken from m4 update - m4 PR #353)
+
+### 2020-09-17 - 5.3.3
+Autorest core version: 3.0.6318
+
+Modelerfour version: 4.15.419
+
+**Bug fixes**
+
+- Fix trailing comma issues in metadata.json (unblocks resource multiapi generation)  #777
+
 ### 2020-09-14 - 5.3.2
 Autorest core version: 3.0.6318
 
