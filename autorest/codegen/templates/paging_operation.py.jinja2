@@ -53,12 +53,19 @@
     warnings.warn('Method {{operation.name}} is deprecated', DeprecationWarning)
 {% endif %}
     {{ helper.paging_operation(code_model, operation, async_mode) }}
-
-    paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
+    {% if operation.parameters.path %}
+    {% set path_format_arguments = "path_format_arguments=path_format_arguments, " %}
+    path_format_arguments = {
+        {% for path_parameter in operation.parameters.path %}
+        '{{ path_parameter.rest_api_name }}': {{ operation.build_serialize_data_call(path_parameter, "url") }},
+        {% endfor %}
+    }
+    {% endif %}
+    paging_method = kwargs.pop("paging_method", PageIterator({{ path_format_arguments }}**kwargs))
     return {{ item_paged }}(
         client=self._client,
         paging_method=paging_method,
-        initial_request=_prepare_initial_request(),
+        initial_call=_prepare_initial_request(),
         extract_data=extract_data,
         {% if operation.next_operation %}
         prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,

@@ -95,13 +95,15 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-
-
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
+        path_format_arguments = {
+            'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
+            'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
+        }
+        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
         return ItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_pages_partial_url.metadata = {'url': '/paging/customurl/partialnextlink'}  # type: ignore
@@ -162,19 +164,25 @@ class PagingOperations(object):
                 'nextLink': self._serialize.url("next_link", next_link, 'str', skip_quote=True),
             }
             url = self._client.format_url(url, **path_format_arguments)
+            # Construct headers
+            header_parameters = {}  # type: Dict[str, Any]
+            header_parameters['Accept'] = self._serialize.header("accept", accept, 'str')
+
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
 
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-
-
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
+        path_format_arguments = {
+            'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
+            'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
+        }
+        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
         return ItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
             prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
         )

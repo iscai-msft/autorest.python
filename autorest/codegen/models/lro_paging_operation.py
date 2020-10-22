@@ -7,7 +7,7 @@
 from typing import Any, Dict, List, Set, Optional
 from .lro_operation import LROOperation
 from .paging_operation import PagingOperation
-from .imports import FileImport
+from .imports import FileImport, ImportType
 from .schema_request import SchemaRequest
 from .parameter import Parameter
 from .schema_response import SchemaResponse
@@ -55,5 +55,9 @@ class LROPagingOperation(PagingOperation, LROOperation):
         paging_imports = PagingOperation.imports(self, code_model, async_mode)
 
         file_import = lro_imports
+        if async_mode:
+            file_import.add_from_import("azure.core.async_paging", "AsyncPageIteratorWithInitialResponse", ImportType.AZURECORE)
+        else:
+            file_import.add_from_import("azure.core.paging", "PageIteratorWithInitialResponse", ImportType.AZURECORE)
         file_import.merge(paging_imports)
         return file_import

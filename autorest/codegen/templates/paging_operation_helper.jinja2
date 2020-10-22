@@ -1,5 +1,5 @@
 {% import 'operation_tools.jinja2' as op_tools %}
-{% macro paging_operation(code_model, operation, async_mode) %}
+{% macro paging_operation(code_model, operation, async_mode, is_lro_paging=False) %}
 {% import 'keywords.jinja2' as keywords with context %}
 {% set next_link_str = "deserialized." + operation.next_link_name + " or None" if operation.next_link_name else "None" %}
 {% set stream_request_parameter = "stream=" ~ ("True" if operation.is_stream_response else "False") %}
@@ -20,7 +20,7 @@ cls = kwargs.pop('cls', None)  # type: ClsType[{{ op_tools.return_type_annotatio
     def _prepare_initial_request():
         {{ op_tools.header_parameters(code_model, operation, async_mode)|indent(8) }}
         # Construct URL
-        url = self.{{ operation.python_name }}.metadata['url']  # type: ignore
+        url = self.{{ "begin_" if is_lro_paging }}{{ operation.python_name }}.metadata['url']  # type: ignore
         {% if operation.parameters.path %}
         path_format_arguments = {
         {% for path_parameter in operation.parameters.path %}
@@ -44,8 +44,8 @@ cls = kwargs.pop('cls', None)  # type: ClsType[{{ op_tools.return_type_annotatio
         {% else %}
         return {{ next_link_str }}, iter(list_of_elem)
         {% endif %}
-
     {% if operation.next_operation %}
+
     def prepare_request_to_separate_next_operation(next_link):
         url = '{{ operation.next_operation.url }}'
         {% if operation.next_operation.parameters.path %}
@@ -56,10 +56,8 @@ cls = kwargs.pop('cls', None)  # type: ClsType[{{ op_tools.return_type_annotatio
         }
         url = self._client.format_url(url, **path_format_arguments)
         {% endif %}
+        {{ op_tools.header_parameters(code_model, operation, async_mode)|indent(8) }}
         {{ op_tools.query_parameters(operation.next_operation, async_mode)|indent(8) }}
         {{ op_tools.body_parameters(operation.next_operation)|indent(8) }}
         return request
-
-    {% endif %}
-
-{%- endmacro -%}
+    {% endif %}{%- endmacro -%}

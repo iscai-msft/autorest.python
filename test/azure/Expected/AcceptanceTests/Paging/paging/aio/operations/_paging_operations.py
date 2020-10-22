@@ -8,7 +8,7 @@
 from typing import Any, AsyncIterable, Callable, Dict, Generic, Optional, TypeVar, Union
 import warnings
 
-from azure.core.async_paging import AsyncItemPaged, AsyncList, AsyncPageIterator
+from azure.core.async_paging import AsyncItemPaged, AsyncList, AsyncPageIterator, AsyncPageIteratorWithInitialResponse
 from azure.core.exceptions import ClientAuthenticationError, HttpResponseError, ResourceExistsError, ResourceNotFoundError, map_error
 from azure.core.pipeline import PipelineResponse
 from azure.core.pipeline.transport import AsyncHttpResponse, HttpRequest
@@ -84,13 +84,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_no_item_name_pages.metadata = {'url': '/paging/noitemname'}  # type: ignore
@@ -134,13 +132,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_null_next_link_name_pages.metadata = {'url': '/paging/nullnextlink'}  # type: ignore
@@ -184,13 +180,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_single_pages.metadata = {'url': '/paging/single'}  # type: ignore
@@ -252,13 +246,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages.metadata = {'url': '/paging/multiple'}  # type: ignore
@@ -312,6 +304,10 @@ class PagingOperations:
 
         def prepare_request_to_separate_next_operation(next_link):
             url = '/paging/multiple/nextOperationWithQueryParams'
+            # Construct headers
+            header_parameters = {}  # type: Dict[str, Any]
+            header_parameters['Accept'] = self._serialize.header("accept", accept, 'str')
+
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
             query_parameters['queryConstant'] = self._serialize.query("query_constant", query_constant, 'bool')
@@ -319,13 +315,11 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
             prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
         )
@@ -388,13 +382,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.odata_next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_odata_multiple_pages.metadata = {'url': '/paging/multiple/odata'}  # type: ignore
@@ -462,13 +454,14 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
+        path_format_arguments = {
+            'offset': self._serialize.url("offset", _offset, 'int'),
+        }
+        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_with_offset.metadata = {'url': '/paging/multiple/withpath/{offset}'}  # type: ignore
@@ -513,13 +506,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_retry_first.metadata = {'url': '/paging/multiple/retryfirst'}  # type: ignore
@@ -564,13 +555,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_retry_second.metadata = {'url': '/paging/multiple/retrysecond'}  # type: ignore
@@ -614,13 +603,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_single_pages_failure.metadata = {'url': '/paging/single/failure'}  # type: ignore
@@ -664,13 +651,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_failure.metadata = {'url': '/paging/multiple/failure'}  # type: ignore
@@ -714,13 +699,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_failure_uri.metadata = {'url': '/paging/multiple/failureuri'}  # type: ignore
@@ -782,6 +765,10 @@ class PagingOperations:
                 'nextLink': self._serialize.url("next_link", next_link, 'str', skip_quote=True),
             }
             url = self._client.format_url(url, **path_format_arguments)
+            # Construct headers
+            header_parameters = {}  # type: Dict[str, Any]
+            header_parameters['Accept'] = self._serialize.header("accept", accept, 'str')
+
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
             query_parameters['api_version'] = self._serialize.query("api_version", api_version, 'str')
@@ -789,13 +776,14 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-
-
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
+        path_format_arguments = {
+            'tenant': self._serialize.url("tenant", tenant, 'str'),
+        }
+        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
             prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
         )
@@ -861,6 +849,10 @@ class PagingOperations:
                 'nextLink': self._serialize.url("next_link", next_link, 'str', skip_quote=True),
             }
             url = self._client.format_url(url, **path_format_arguments)
+            # Construct headers
+            header_parameters = {}  # type: Dict[str, Any]
+            header_parameters['Accept'] = self._serialize.header("accept", accept, 'str')
+
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
             query_parameters['api_version'] = self._serialize.query("api_version", _api_version, 'str')
@@ -868,13 +860,14 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-
-
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
+        path_format_arguments = {
+            'tenant': self._serialize.url("tenant", _tenant, 'str'),
+        }
+        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
             prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
         )
@@ -979,7 +972,7 @@ class PagingOperations:
             header_parameters['Accept'] = self._serialize.header("accept", accept, 'str')
 
             # Construct URL
-            url = self.get_multiple_pages_lro.metadata['url']  # type: ignore
+            url = self.begin_get_multiple_pages_lro.metadata['url']  # type: ignore
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
 
@@ -992,7 +985,6 @@ class PagingOperations:
             if cls:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
-
 
 
         polling = kwargs.pop('polling', True)  # type: Union[bool, AsyncPollingMethod]
@@ -1013,14 +1005,13 @@ class PagingOperations:
         kwargs.pop('error_map', None)
         kwargs.pop('content_type', None)
         def get_long_running_output(pipeline_response):
-            async def internal_get_next(next_link=None):
-                if next_link is None:
-                    return pipeline_response
-                else:
-                    return await get_next(next_link)
+            paging_method = kwargs.pop("paging_method", AsyncPageIteratorWithInitialResponse(**kwargs))
 
             return AsyncItemPaged(
-                internal_get_next, extract_data
+                client=self._client,
+                paging_method=paging_method,
+                initial_call=pipeline_response,
+                extract_data=extract_data,
             )
         if polling is True: polling_method = AsyncARMPolling(lro_delay,  **kwargs)
         elif polling is False: polling_method = AsyncNoPolling()
@@ -1076,13 +1067,11 @@ class PagingOperations:
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, AsyncList(list_of_elem)
 
-
-
         paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
         return AsyncItemPaged(
             client=self._client,
             paging_method=paging_method,
-            initial_request=_prepare_initial_request(),
+            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_paging_model_with_item_name_with_xms_client_name.metadata = {'url': '/paging/itemNameWithXMSClientName'}  # type: ignore
