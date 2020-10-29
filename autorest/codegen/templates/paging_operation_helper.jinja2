@@ -1,4 +1,34 @@
 {% import 'operation_tools.jinja2' as op_tools %}
+{% macro paging_method_declaration(operation, async_mode, initial_response=None) %}
+{% set path_format_arguments = "" %}
+{% if operation.parameters.path %}
+    {% set path_format_arguments = "path_format_arguments=path_format_arguments, " %}
+{% endif %}
+{% if operation.next_operation %}
+    {% set paging_method = "SeperateNextOperationPagingMethod" %}
+{% else %}
+    {% set paging_method = "BasicPagingMethod" %}
+{% endif %}
+paging_method = kwargs.pop("paging_method", {{ paging_method }}(
+    client=self._client,
+    {% if operation.next_operation %}
+    prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+    {% endif %}
+    {% if initial_response %}
+    initial_response={{ initial_response }},
+    {% else %}
+    initial_request=_prepare_initial_request(),
+    {% endif %}
+    {% if operation.parameters.path %}
+    path_format_arguments=path_format_arguments,
+    {% endif %}
+)){% endmacro %}
+{% macro item_paged_retval(async_mode) %}
+{% set item_paged = "AsyncItemPaged" if async_mode else "ItemPaged" %}
+return {{ item_paged }}(
+    paging_method=paging_method,
+    extract_data=extract_data,
+){% endmacro %}
 {% macro paging_operation(code_model, operation, async_mode, is_lro_paging=False) %}
 {% import 'keywords.jinja2' as keywords with context %}
 {% set next_link_str = "deserialized." + operation.next_link_name + " or None" if operation.next_link_name else "None" %}
@@ -16,22 +46,27 @@ cls = kwargs.pop('cls', None)  # type: ClsType[{{ op_tools.return_type_annotatio
     {{ constant_parameter.serialized_name }} = {{ constant_parameter.constant_declaration }}
     {% endfor %}
 {% endif %}
+    {% if operation.parameters.path %}
+    
+    path_format_arguments = {
+    {% for path_parameter in operation.parameters.path %}
+        '{{ path_parameter.rest_api_name }}': {{ operation.build_serialize_data_call(path_parameter, "url") }},
+    {% endfor %}
+    }
+    {% endif %}
+    {% if not is_lro_paging %}
 
     def _prepare_initial_request():
         {{ op_tools.header_parameters(code_model, operation, async_mode)|indent(8) }}
         # Construct URL
         url = self.{{ "begin_" if is_lro_paging }}{{ operation.python_name }}.metadata['url']  # type: ignore
         {% if operation.parameters.path %}
-        path_format_arguments = {
-        {% for path_parameter in operation.parameters.path %}
-            '{{ path_parameter.rest_api_name }}': {{ operation.build_serialize_data_call(path_parameter, "url") }},
-        {% endfor %}
-        }
         url = self._client.format_url(url, **path_format_arguments)
         {% endif %}
         {{ op_tools.query_parameters(operation, async_mode)|indent(8) }}
         {{ op_tools.body_parameters(operation)|indent(8) }}
         return request
+    {% endif %}
 
     {{ keywords.def }} extract_data(pipeline_response):
         {% set response = operation.responses[0] %}

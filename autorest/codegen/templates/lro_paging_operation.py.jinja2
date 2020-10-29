@@ -35,15 +35,7 @@
         }
 
         {% endif %}
-        paging_method = kwargs.pop("paging_method", {{ "Async" if async_mode }}PageIteratorWithInitialResponse({{ path_format_arguments }}**kwargs))
+        {{ paging_helper.paging_method_declaration(operation, async_mode, initial_response='pipeline_response') | indent(8) }}
 
-        return {{ "Async" if async_mode }}ItemPaged(
-            client=self._client,
-            paging_method=paging_method,
-            initial_call=pipeline_response,
-            extract_data=extract_data,
-            {% if operation.next_operation %}
-            prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
-            {% endif %}
-        )
+        {{ paging_helper.item_paged_retval(async_mode) | indent(8) }}
 {{ lro_helper.lro_operation_return(code_model, operation, async_mode) }}

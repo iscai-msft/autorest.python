@@ -55,9 +55,5 @@ class LROPagingOperation(PagingOperation, LROOperation):
         paging_imports = PagingOperation.imports(self, code_model, async_mode)
 
         file_import = lro_imports
-        if async_mode:
-            file_import.add_from_import("azure.core.async_paging", "AsyncPageIteratorWithInitialResponse", ImportType.AZURECORE)
-        else:
-            file_import.add_from_import("azure.core.paging", "PageIteratorWithInitialResponse", ImportType.AZURECORE)
         file_import.merge(paging_imports)
         return file_import

@@ -2,7 +2,6 @@
 {% import 'paging_operation_helper.jinja2' as helper %}
 {% set send_xml = "xml" if operation.parameters.has_body and "xml" in operation.request_content_type  %}
 {% set request_as_xml = ", is_xml=True" if send_xml else "" %}
-{% set item_paged = "AsyncItemPaged" if async_mode else "ItemPaged" %}
 {% macro return_docstring(async_mode) %}
 {% if operation.responses | selectattr('has_body') | first %}
 :return: An iterator like instance of either {{ operation.responses|selectattr('has_body')|map(attribute='docstring_text')|unique|join(' or ') }} or the result of cls(response)
@@ -53,22 +52,7 @@
     warnings.warn('Method {{operation.name}} is deprecated', DeprecationWarning)
 {% endif %}
     {{ helper.paging_operation(code_model, operation, async_mode) }}
-    {% if operation.parameters.path %}
-    {% set path_format_arguments = "path_format_arguments=path_format_arguments, " %}
-    path_format_arguments = {
-        {% for path_parameter in operation.parameters.path %}
-        '{{ path_parameter.rest_api_name }}': {{ operation.build_serialize_data_call(path_parameter, "url") }},
-        {% endfor %}
-    }
-    {% endif %}
-    paging_method = kwargs.pop("paging_method", PageIterator({{ path_format_arguments }}**kwargs))
-    return {{ item_paged }}(
-        client=self._client,
-        paging_method=paging_method,
-        initial_call=_prepare_initial_request(),
-        extract_data=extract_data,
-        {% if operation.next_operation %}
-        prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
-        {% endif %}
-    )
+    {{ helper.paging_method_declaration(operation, async_mode) | indent }}
+    
+    {{ helper.item_paged_retval(async_mode) | indent }}
 {{ operation.python_name }}.metadata = {'url': '{{ operation.url|replace("'", "\\'") }}'}  # type: ignore

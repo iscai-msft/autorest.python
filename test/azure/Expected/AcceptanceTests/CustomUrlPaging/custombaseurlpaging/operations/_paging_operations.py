@@ -10,6 +10,7 @@ import warnings
 
 from azure.core.exceptions import ClientAuthenticationError, HttpResponseError, ResourceExistsError, ResourceNotFoundError, map_error
 from azure.core.paging import ItemPaged, PageIterator
+from azure.core.paging_method import BasicPagingMethod, SeperateNextOperationPagingMethod
 from azure.core.pipeline import PipelineResponse
 from azure.core.pipeline.transport import HttpRequest, HttpResponse
 from azure.core.tracing.decorator import distributed_trace
@@ -69,6 +70,11 @@ class PagingOperations(object):
         }
         error_map.update(kwargs.pop('error_map', {}))
         accept = "application/json"
+        
+        path_format_arguments = {
+            'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
+            'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
+        }
 
         def _prepare_initial_request():
             # Construct headers
@@ -77,10 +83,6 @@ class PagingOperations(object):
 
             # Construct URL
             url = self.get_pages_partial_url.metadata['url']  # type: ignore
-            path_format_arguments = {
-                'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
-                'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
-            }
             url = self._client.format_url(url, **path_format_arguments)
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
@@ -95,15 +97,14 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        path_format_arguments = {
-            'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
-            'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
-        }
-        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+            path_format_arguments=path_format_arguments,
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_pages_partial_url.metadata = {'url': '/paging/customurl/partialnextlink'}  # type: ignore
@@ -130,6 +131,11 @@ class PagingOperations(object):
         }
         error_map.update(kwargs.pop('error_map', {}))
         accept = "application/json"
+        
+        path_format_arguments = {
+            'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
+            'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
+        }
 
         def _prepare_initial_request():
             # Construct headers
@@ -138,10 +144,6 @@ class PagingOperations(object):
 
             # Construct URL
             url = self.get_pages_partial_url_operation.metadata['url']  # type: ignore
-            path_format_arguments = {
-                'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
-                'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
-            }
             url = self._client.format_url(url, **path_format_arguments)
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
@@ -174,16 +176,15 @@ class PagingOperations(object):
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        path_format_arguments = {
-            'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
-            'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
-        }
-        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", SeperateNextOperationPagingMethod(
             client=self._client,
-            paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
-            extract_data=extract_data,
             prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+            initial_request=_prepare_initial_request(),
+            path_format_arguments=path_format_arguments,
+        ))
+        
+        return ItemPaged(
+            paging_method=paging_method,
+            extract_data=extract_data,
         )
     get_pages_partial_url_operation.metadata = {'url': '/paging/customurl/partialnextlinkop'}  # type: ignore

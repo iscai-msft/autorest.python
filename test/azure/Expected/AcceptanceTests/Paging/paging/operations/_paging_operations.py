@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 import warnings
 
 from azure.core.exceptions import ClientAuthenticationError, HttpResponseError, ResourceExistsError, ResourceNotFoundError, map_error
-from azure.core.paging import ItemPaged, PageIterator, PageIteratorWithInitialResponse
+from azure.core.paging import ItemPaged, PageIterator
+from azure.core.paging_method import BasicPagingMethod, SeperateNextOperationPagingMethod
 from azure.core.pipeline import PipelineResponse
 from azure.core.pipeline.transport import HttpRequest, HttpResponse
 from azure.core.polling import LROPoller, NoPolling, PollingMethod
@@ -88,11 +89,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_no_item_name_pages.metadata = {'url': '/paging/noitemname'}  # type: ignore
@@ -137,11 +140,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_null_next_link_name_pages.metadata = {'url': '/paging/nullnextlink'}  # type: ignore
@@ -186,11 +191,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_single_pages.metadata = {'url': '/paging/single'}  # type: ignore
@@ -219,7 +226,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-
+        
         _maxresults = None
         _timeout = None
         if paging_get_multiple_pages_options is not None:
@@ -253,11 +260,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages.metadata = {'url': '/paging/multiple'}  # type: ignore
@@ -323,13 +332,15 @@ class PagingOperations(object):
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", SeperateNextOperationPagingMethod(
             client=self._client,
-            paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
-            extract_data=extract_data,
             prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
+            paging_method=paging_method,
+            extract_data=extract_data,
         )
     get_with_query_params.metadata = {'url': '/paging/multiple/getWithQueryParams'}  # type: ignore
 
@@ -357,7 +368,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-
+        
         _maxresults = None
         _timeout = None
         if paging_get_odata_multiple_pages_options is not None:
@@ -391,11 +402,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.odata_next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_odata_multiple_pages.metadata = {'url': '/paging/multiple/odata'}  # type: ignore
@@ -424,7 +437,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-
+        
         _maxresults = None
         _offset = None
         _timeout = None
@@ -433,6 +446,10 @@ class PagingOperations(object):
             _offset = paging_get_multiple_pages_with_offset_options.offset
             _timeout = paging_get_multiple_pages_with_offset_options.timeout
         accept = "application/json"
+        
+        path_format_arguments = {
+            'offset': self._serialize.url("offset", _offset, 'int'),
+        }
 
         def _prepare_initial_request():
             # Construct headers
@@ -447,9 +464,6 @@ class PagingOperations(object):
 
             # Construct URL
             url = self.get_multiple_pages_with_offset.metadata['url']  # type: ignore
-            path_format_arguments = {
-                'offset': self._serialize.url("offset", _offset, 'int'),
-            }
             url = self._client.format_url(url, **path_format_arguments)
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
@@ -464,14 +478,14 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        path_format_arguments = {
-            'offset': self._serialize.url("offset", _offset, 'int'),
-        }
-        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+            path_format_arguments=path_format_arguments,
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_with_offset.metadata = {'url': '/paging/multiple/withpath/{offset}'}  # type: ignore
@@ -517,11 +531,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_retry_first.metadata = {'url': '/paging/multiple/retryfirst'}  # type: ignore
@@ -567,11 +583,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_retry_second.metadata = {'url': '/paging/multiple/retrysecond'}  # type: ignore
@@ -616,11 +634,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_single_pages_failure.metadata = {'url': '/paging/single/failure'}  # type: ignore
@@ -665,11 +685,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_failure.metadata = {'url': '/paging/multiple/failure'}  # type: ignore
@@ -714,11 +736,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_multiple_pages_failure_uri.metadata = {'url': '/paging/multiple/failureuri'}  # type: ignore
@@ -748,6 +772,10 @@ class PagingOperations(object):
         }
         error_map.update(kwargs.pop('error_map', {}))
         accept = "application/json"
+        
+        path_format_arguments = {
+            'tenant': self._serialize.url("tenant", tenant, 'str'),
+        }
 
         def _prepare_initial_request():
             # Construct headers
@@ -756,9 +784,6 @@ class PagingOperations(object):
 
             # Construct URL
             url = self.get_multiple_pages_fragment_next_link.metadata['url']  # type: ignore
-            path_format_arguments = {
-                'tenant': self._serialize.url("tenant", tenant, 'str'),
-            }
             url = self._client.format_url(url, **path_format_arguments)
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
@@ -792,16 +817,16 @@ class PagingOperations(object):
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        path_format_arguments = {
-            'tenant': self._serialize.url("tenant", tenant, 'str'),
-        }
-        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", SeperateNextOperationPagingMethod(
             client=self._client,
-            paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
-            extract_data=extract_data,
             prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+            initial_request=_prepare_initial_request(),
+            path_format_arguments=path_format_arguments,
+        ))
+        
+        return ItemPaged(
+            paging_method=paging_method,
+            extract_data=extract_data,
         )
     get_multiple_pages_fragment_next_link.metadata = {'url': '/paging/multiple/fragment/{tenant}'}  # type: ignore
 
@@ -826,13 +851,17 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-
+        
         _api_version = None
         _tenant = None
         if custom_parameter_group is not None:
             _api_version = custom_parameter_group.api_version
             _tenant = custom_parameter_group.tenant
         accept = "application/json"
+        
+        path_format_arguments = {
+            'tenant': self._serialize.url("tenant", _tenant, 'str'),
+        }
 
         def _prepare_initial_request():
             # Construct headers
@@ -841,9 +870,6 @@ class PagingOperations(object):
 
             # Construct URL
             url = self.get_multiple_pages_fragment_with_grouping_next_link.metadata['url']  # type: ignore
-            path_format_arguments = {
-                'tenant': self._serialize.url("tenant", _tenant, 'str'),
-            }
             url = self._client.format_url(url, **path_format_arguments)
             # Construct parameters
             query_parameters = {}  # type: Dict[str, Any]
@@ -877,16 +903,16 @@ class PagingOperations(object):
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        path_format_arguments = {
-            'tenant': self._serialize.url("tenant", _tenant, 'str'),
-        }
-        paging_method = kwargs.pop("paging_method", PageIterator(path_format_arguments=path_format_arguments, **kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", SeperateNextOperationPagingMethod(
             client=self._client,
-            paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
-            extract_data=extract_data,
             prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+            initial_request=_prepare_initial_request(),
+            path_format_arguments=path_format_arguments,
+        ))
+        
+        return ItemPaged(
+            paging_method=paging_method,
+            extract_data=extract_data,
         )
     get_multiple_pages_fragment_with_grouping_next_link.metadata = {'url': '/paging/multiple/fragmentwithgrouping/{tenant}'}  # type: ignore
 
@@ -902,7 +928,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-
+        
         _maxresults = None
         _timeout = None
         if paging_get_multiple_pages_lro_options is not None:
@@ -971,7 +997,7 @@ class PagingOperations(object):
             401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
         }
         error_map.update(kwargs.pop('error_map', {}))
-
+        
         _maxresults = None
         _timeout = None
         if paging_get_multiple_pages_lro_options is not None:
@@ -1005,12 +1031,13 @@ class PagingOperations(object):
         kwargs.pop('error_map', None)
         kwargs.pop('content_type', None)
         def get_long_running_output(pipeline_response):
-            paging_method = kwargs.pop("paging_method", PageIteratorWithInitialResponse(**kwargs))
+            paging_method = kwargs.pop("paging_method", BasicPagingMethod(
+                client=self._client,
+                initial_response=pipeline_response,
+            ))
 
             return ItemPaged(
-                client=self._client,
                 paging_method=paging_method,
-                initial_call=pipeline_response,
                 extract_data=extract_data,
             )
         if polling is True: polling_method = ARMPolling(lro_delay,  **kwargs)
@@ -1068,11 +1095,13 @@ class PagingOperations(object):
                 list_of_elem = cls(list_of_elem)
             return deserialized.next_link or None, iter(list_of_elem)
 
-        paging_method = kwargs.pop("paging_method", PageIterator(**kwargs))
-        return ItemPaged(
+        paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            initial_request=_prepare_initial_request(),
+        ))
+        
+        return ItemPaged(
             paging_method=paging_method,
-            initial_call=_prepare_initial_request(),
             extract_data=extract_data,
         )
     get_paging_model_with_item_name_with_xms_client_name.metadata = {'url': '/paging/itemNameWithXMSClientName'}  # type: ignore
