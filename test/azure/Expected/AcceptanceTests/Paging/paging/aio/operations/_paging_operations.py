@@ -77,22 +77,17 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResultValue', pipeline_response)
-            list_of_elem = deserialized.value
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResultValue', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_no_item_name_pages.metadata = {'url': '/paging/noitemname'}  # type: ignore
 
     @distributed_trace
@@ -127,22 +122,19 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
+            continuation_token_name=None,
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_null_next_link_name_pages.metadata = {'url': '/paging/nullnextlink'}  # type: ignore
 
     @distributed_trace
@@ -177,22 +169,18 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_single_pages.metadata = {'url': '/paging/single'}  # type: ignore
 
     @distributed_trace
@@ -245,22 +233,18 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_multiple_pages.metadata = {'url': '/paging/multiple'}  # type: ignore
 
     @distributed_trace
@@ -303,14 +287,10 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
-        def prepare_request_to_separate_next_operation(next_link):
+        def prepare_next_request(next_link):
             url = '/paging/multiple/nextOperationWithQueryParams'
             # Construct headers
             header_parameters = {}  # type: Dict[str, Any]
@@ -323,16 +303,16 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        paging_method = kwargs.pop("paging_method", SeperateNextOperationPagingMethod(
+        paging_method = kwargs.pop("paging_method", DifferentNextOperationPagingMethod(
             client=self._client,
-            prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+            deserialize_output=deserialize_output,
+            prepare_next_request=prepare_next_request,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_with_query_params.metadata = {'url': '/paging/multiple/getWithQueryParams'}  # type: ignore
 
     @distributed_trace
@@ -385,22 +365,19 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('OdataProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.odata_next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('OdataProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
+            continuation_token_name='odata_next_link',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_odata_multiple_pages.metadata = {'url': '/paging/multiple/odata'}  # type: ignore
 
     @distributed_trace
@@ -435,7 +412,7 @@ class PagingOperations:
             _offset = paging_get_multiple_pages_with_offset_options.offset
             _timeout = paging_get_multiple_pages_with_offset_options.timeout
         accept = "application/json"
-        
+
         path_format_arguments = {
             'offset': self._serialize.url("offset", _offset, 'int'),
         }
@@ -460,23 +437,19 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
             path_format_arguments=path_format_arguments,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_multiple_pages_with_offset.metadata = {'url': '/paging/multiple/withpath/{offset}'}  # type: ignore
 
     @distributed_trace
@@ -512,22 +485,18 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_multiple_pages_retry_first.metadata = {'url': '/paging/multiple/retryfirst'}  # type: ignore
 
     @distributed_trace
@@ -563,22 +532,18 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_multiple_pages_retry_second.metadata = {'url': '/paging/multiple/retrysecond'}  # type: ignore
 
     @distributed_trace
@@ -613,22 +578,18 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_single_pages_failure.metadata = {'url': '/paging/single/failure'}  # type: ignore
 
     @distributed_trace
@@ -663,22 +624,18 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_multiple_pages_failure.metadata = {'url': '/paging/multiple/failure'}  # type: ignore
 
     @distributed_trace
@@ -713,22 +670,18 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_multiple_pages_failure_uri.metadata = {'url': '/paging/multiple/failureuri'}  # type: ignore
 
     @distributed_trace
@@ -755,7 +708,7 @@ class PagingOperations:
         }
         error_map.update(kwargs.pop('error_map', {}))
         accept = "application/json"
-        
+
         path_format_arguments = {
             'tenant': self._serialize.url("tenant", tenant, 'str'),
         }
@@ -775,14 +728,10 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('OdataProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.odata_next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('OdataProductResult', pipeline_response)
 
-        def prepare_request_to_separate_next_operation(next_link):
+        def prepare_next_request(next_link):
             url = '/paging/multiple/fragment/{tenant}/{nextLink}'
             path_format_arguments = {
                 'tenant': self._serialize.url("tenant", tenant, 'str'),
@@ -800,17 +749,18 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        paging_method = kwargs.pop("paging_method", SeperateNextOperationPagingMethod(
+        paging_method = kwargs.pop("paging_method", DifferentNextOperationPagingMethod(
             client=self._client,
-            prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+            deserialize_output=deserialize_output,
+            prepare_next_request=prepare_next_request,
             initial_request=_prepare_initial_request(),
+            cls=cls,
             path_format_arguments=path_format_arguments,
+            item_name='values',
+            continuation_token_name='odata_next_link',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_multiple_pages_fragment_next_link.metadata = {'url': '/paging/multiple/fragment/{tenant}'}  # type: ignore
 
     @distributed_trace
@@ -840,7 +790,7 @@ class PagingOperations:
             _api_version = custom_parameter_group.api_version
             _tenant = custom_parameter_group.tenant
         accept = "application/json"
-        
+
         path_format_arguments = {
             'tenant': self._serialize.url("tenant", _tenant, 'str'),
         }
@@ -860,14 +810,10 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('OdataProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.odata_next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('OdataProductResult', pipeline_response)
 
-        def prepare_request_to_separate_next_operation(next_link):
+        def prepare_next_request(next_link):
             url = '/paging/multiple/fragmentwithgrouping/{tenant}/{nextLink}'
             path_format_arguments = {
                 'tenant': self._serialize.url("tenant", _tenant, 'str'),
@@ -885,17 +831,18 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        paging_method = kwargs.pop("paging_method", SeperateNextOperationPagingMethod(
+        paging_method = kwargs.pop("paging_method", DifferentNextOperationPagingMethod(
             client=self._client,
-            prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+            deserialize_output=deserialize_output,
+            prepare_next_request=prepare_next_request,
             initial_request=_prepare_initial_request(),
+            cls=cls,
             path_format_arguments=path_format_arguments,
+            item_name='values',
+            continuation_token_name='odata_next_link',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_multiple_pages_fragment_with_grouping_next_link.metadata = {'url': '/paging/multiple/fragmentwithgrouping/{tenant}'}  # type: ignore
 
     async def _get_multiple_pages_lro_initial(
@@ -972,27 +919,7 @@ class PagingOperations:
         :rtype: ~azure.core.polling.AsyncLROPoller[~azure.core.async_paging.AsyncItemPaged[~paging.models.ProductResult]]
         :raises ~azure.core.exceptions.HttpResponseError:
         """
-        cls = kwargs.pop('cls', None)  # type: ClsType["models.ProductResult"]
-        error_map = {
-            401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
-        }
-        error_map.update(kwargs.pop('error_map', {}))
         
-        _maxresults = None
-        _timeout = None
-        if paging_get_multiple_pages_lro_options is not None:
-            _maxresults = paging_get_multiple_pages_lro_options.maxresults
-            _timeout = paging_get_multiple_pages_lro_options.timeout
-        accept = "application/json"
-
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
-
-
         polling = kwargs.pop('polling', True)  # type: Union[bool, AsyncPollingMethod]
         cls = kwargs.pop('cls', None)  # type: ClsType["models.ProductResult"]
         lro_delay = kwargs.pop(
@@ -1011,15 +938,32 @@ class PagingOperations:
         kwargs.pop('error_map', None)
         kwargs.pop('content_type', None)
         def get_long_running_output(pipeline_response):
+            cls = kwargs.pop('cls', None)  # type: ClsType["models.ProductResult"]
+        error_map = {
+            401: ClientAuthenticationError, 404: ResourceNotFoundError, 409: ResourceExistsError
+        }
+        error_map.update(kwargs.pop('error_map', {}))
+        
+        _maxresults = None
+        _timeout = None
+        if paging_get_multiple_pages_lro_options is not None:
+            _maxresults = paging_get_multiple_pages_lro_options.maxresults
+            _timeout = paging_get_multiple_pages_lro_options.timeout
+        accept = "application/json"
+
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
+
+
             paging_method = kwargs.pop("paging_method", BasicPagingMethod(
                 client=self._client,
+                deserialize_output=deserialize_output,
                 initial_response=pipeline_response,
+                cls=cls,
+                item_name='values',
             ))
 
-            return AsyncItemPaged(
-                paging_method=paging_method,
-                extract_data=extract_data,
-            )
+            return AsyncItemPaged(paging_method=paging_method)
         if polling is True: polling_method = AsyncARMPolling(lro_delay,  **kwargs)
         elif polling is False: polling_method = AsyncNoPolling()
         else: polling_method = polling
@@ -1067,20 +1011,16 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResultValueWithXMSClientName', pipeline_response)
-            list_of_elem = deserialized.indexes
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResultValueWithXMSClientName', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
+            item_name='indexes',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_paging_model_with_item_name_with_xms_client_name.metadata = {'url': '/paging/itemNameWithXMSClientName'}  # type: ignore

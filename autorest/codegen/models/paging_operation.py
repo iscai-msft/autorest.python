@@ -129,7 +129,7 @@ class PagingOperation(Operation):
 
             if self.next_operation:
                 file_import.add_from_import(
-                    f"azure.core.{paging_file}_method", f"{async_prefix}SeperateNextOperationPagingMethod", ImportType.AZURECORE
+                    f"azure.core.{paging_file}_method", f"{async_prefix}DifferentNextOperationPagingMethod", ImportType.AZURECORE
                 )
             else:
                 file_import.add_from_import(f"azure.core.{paging_file}_method", f"{async_prefix}BasicPagingMethod", ImportType.AZURECORE)

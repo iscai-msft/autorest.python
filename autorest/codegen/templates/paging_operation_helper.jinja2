@@ -5,30 +5,35 @@
     {% set path_format_arguments = "path_format_arguments=path_format_arguments, " %}
 {% endif %}
 {% if operation.next_operation %}
-    {% set paging_method = "SeperateNextOperationPagingMethod" %}
+    {% set paging_method = "DifferentNextOperationPagingMethod" %}
 {% else %}
     {% set paging_method = "BasicPagingMethod" %}
 {% endif %}
 paging_method = kwargs.pop("paging_method", {{ paging_method }}(
     client=self._client,
+    deserialize_output=deserialize_output,
     {% if operation.next_operation %}
-    prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+    prepare_next_request=prepare_next_request,
     {% endif %}
     {% if initial_response %}
     initial_response={{ initial_response }},
     {% else %}
     initial_request=_prepare_initial_request(),
     {% endif %}
+    cls=cls,
     {% if operation.parameters.path %}
     path_format_arguments=path_format_arguments,
+    {% endif %}
+    {% if operation.item_name != 'value' %}
+    item_name='{{ operation.item_name }}',
+    {% endif %}
+    {% if operation.next_link_name != 'next_link' %}
+    continuation_token_name={{ ("'" ~ operation.next_link_name ~ "'") if operation.next_link_name else "None" }},
     {% endif %}
 )){% endmacro %}
 {% macro item_paged_retval(async_mode) %}
 {% set item_paged = "AsyncItemPaged" if async_mode else "ItemPaged" %}
-return {{ item_paged }}(
-    paging_method=paging_method,
-    extract_data=extract_data,
-){% endmacro %}
+return {{ item_paged }}(paging_method=paging_method){% endmacro %}
 {% macro paging_operation(code_model, operation, async_mode, is_lro_paging=False) %}
 {% import 'keywords.jinja2' as keywords with context %}
 {% set next_link_str = "deserialized." + operation.next_link_name + " or None" if operation.next_link_name else "None" %}
@@ -47,7 +52,7 @@ cls = kwargs.pop('cls', None)  # type: ClsType[{{ op_tools.return_type_annotatio
     {% endfor %}
 {% endif %}
     {% if operation.parameters.path %}
-    
+
     path_format_arguments = {
     {% for path_parameter in operation.parameters.path %}
         '{{ path_parameter.rest_api_name }}': {{ operation.build_serialize_data_call(path_parameter, "url") }},
@@ -68,20 +73,12 @@ cls = kwargs.pop('cls', None)  # type: ClsType[{{ op_tools.return_type_annotatio
         return request
     {% endif %}
 
-    {{ keywords.def }} extract_data(pipeline_response):
+    {{ keywords.def }} deserialize_output(pipeline_response):
         {% set response = operation.responses[0] %}
-        deserialized = self._deserialize('{{ response.serialization_type }}', pipeline_response)
-        list_of_elem = deserialized.{{ operation.item_name }}
-        if cls:
-            list_of_elem = cls(list_of_elem)
-        {% if async_mode %}
-        return {{ next_link_str }}, AsyncList(list_of_elem)
-        {% else %}
-        return {{ next_link_str }}, iter(list_of_elem)
-        {% endif %}
+        return self._deserialize('{{ response.serialization_type }}', pipeline_response)
     {% if operation.next_operation %}
 
-    def prepare_request_to_separate_next_operation(next_link):
+    def prepare_next_request(next_link):
         url = '{{ operation.next_operation.url }}'
         {% if operation.next_operation.parameters.path %}
         path_format_arguments = {

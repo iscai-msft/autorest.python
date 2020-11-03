@@ -65,7 +65,7 @@ class PagingOperations:
         }
         error_map.update(kwargs.pop('error_map', {}))
         accept = "application/json"
-        
+
         path_format_arguments = {
             'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
             'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
@@ -85,23 +85,19 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
         paging_method = kwargs.pop("paging_method", BasicPagingMethod(
             client=self._client,
+            deserialize_output=deserialize_output,
             initial_request=_prepare_initial_request(),
+            cls=cls,
             path_format_arguments=path_format_arguments,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_pages_partial_url.metadata = {'url': '/paging/customurl/partialnextlink'}  # type: ignore
 
     @distributed_trace
@@ -125,7 +121,7 @@ class PagingOperations:
         }
         error_map.update(kwargs.pop('error_map', {}))
         accept = "application/json"
-        
+
         path_format_arguments = {
             'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
             'host': self._serialize.url("self._config.host", self._config.host, 'str', skip_quote=True),
@@ -145,14 +141,10 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        async def extract_data(pipeline_response):
-            deserialized = self._deserialize('ProductResult', pipeline_response)
-            list_of_elem = deserialized.values
-            if cls:
-                list_of_elem = cls(list_of_elem)
-            return deserialized.next_link or None, AsyncList(list_of_elem)
+        async def deserialize_output(pipeline_response):
+            return self._deserialize('ProductResult', pipeline_response)
 
-        def prepare_request_to_separate_next_operation(next_link):
+        def prepare_next_request(next_link):
             url = '/paging/customurl/{nextLink}'
             path_format_arguments = {
                 'accountName': self._serialize.url("account_name", account_name, 'str', skip_quote=True),
@@ -170,15 +162,15 @@ class PagingOperations:
             request = self._client.get(url, query_parameters, header_parameters)
             return request
 
-        paging_method = kwargs.pop("paging_method", SeperateNextOperationPagingMethod(
+        paging_method = kwargs.pop("paging_method", DifferentNextOperationPagingMethod(
             client=self._client,
-            prepare_request_to_separate_next_operation=prepare_request_to_separate_next_operation,
+            deserialize_output=deserialize_output,
+            prepare_next_request=prepare_next_request,
             initial_request=_prepare_initial_request(),
+            cls=cls,
             path_format_arguments=path_format_arguments,
+            item_name='values',
         ))
         
-        return AsyncItemPaged(
-            paging_method=paging_method,
-            extract_data=extract_data,
-        )
+        return AsyncItemPaged(paging_method=paging_method)
     get_pages_partial_url_operation.metadata = {'url': '/paging/customurl/partialnextlinkop'}  # type: ignore
